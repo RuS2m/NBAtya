@@ -1,5 +1,5 @@
 import re
-from typing import List
+from typing import List, Tuple
 
 from telegram import InlineKeyboardButton
 
@@ -63,7 +63,7 @@ This function provides type of pagination with 2 buttons:
 - next
 
 You must pass such parameters as chat_id or callback_pattern for naming callback_function,
-which will be refered each button
+which will be referred each button
 """
 def two_buttons_pagination_menu(total: int, page_num: int, callback_pattern: str, chat_id: int) \
         -> List[InlineKeyboardButton]:

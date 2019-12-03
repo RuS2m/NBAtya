@@ -113,3 +113,28 @@ class SeasonPage:
                '<i>type</i>: {}\n' \
                '<i>year</i>: {}' \
                ''.format(self.season_name, self.season_type, self.season_year)
+
+
+class Message:
+    def __init__(self, message_id,
+                 message_version,
+                 chat_id,
+                 text,
+                 buttons_names,
+                 buttons_callbacks):
+        self.message_id = message_id
+        self.message_version = message_version
+        self.chat_id = chat_id
+        self.text = text
+        self.buttons_names = buttons_names
+        self.buttons_callbacks = buttons_callbacks
+
+    def __str__(self):
+        return 'message {}\n' \
+               'message_version {}\n' \
+               'chat {}\n' \
+               'text {}\n' \
+               'buttons_names {}\n' \
+               'buttons_callbacks {}' \
+               ''.format(self.message_id, self.message_version, self.chat_id, self.text, self.buttons_names,
+                         self.buttons_callbacks)

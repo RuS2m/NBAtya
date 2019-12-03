@@ -7,5 +7,4 @@ from config import DbConfig
 engine = create_engine(DbConfig.database_url, echo=True)
 
 _SessionFactory = sessionmaker(bind=engine)
-session = Session(engine)
 Base = declarative_base()

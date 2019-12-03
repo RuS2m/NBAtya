@@ -1,3 +1,5 @@
+import sys
+
 from telegram.ext import CommandHandler, Updater, CallbackQueryHandler
 
 from config import BotConfig
@@ -8,10 +10,14 @@ if __name__ == '__main__':
     Base.metadata.create_all(engine)
     updater = Updater(token=BotConfig.token)
     dispatcher = updater.dispatcher
-    dispatcher.add_handler(CommandHandler(command='start', callback=start))
-    dispatcher.add_handler(CommandHandler(command='seasons', callback=seasons))
-    dispatcher.add_handler(CallbackQueryHandler(seasons_navigation_button, pattern=r"sn_pg"))
-    dispatcher.add_handler(CallbackQueryHandler(season_button, pattern=r"sn_"))
-    dispatcher.add_error_handler(error)
-    updater.start_polling(poll_interval=1)
-    updater.idle()
+    try:
+        dispatcher.add_handler(CommandHandler(command='start', callback=start))
+        dispatcher.add_handler(CommandHandler(command='seasons', callback=seasons))
+        dispatcher.add_handler(CallbackQueryHandler(seasons_navigation_button, pattern=r"sn_pg"))
+        dispatcher.add_handler(CallbackQueryHandler(season_button, pattern=r"sn_"))
+        dispatcher.add_handler(CallbackQueryHandler(back_button, pattern=r"b_"))
+        dispatcher.add_error_handler(error)
+        updater.start_polling(allowed_updates=True)
+        updater.idle()
+    except KeyboardInterrupt:
+        sys.exit(0)

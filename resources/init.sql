@@ -199,3 +199,13 @@ CREATE TABLE bets (
 	price_2 DOUBLE PRECISION,
 	PRIMARY KEY(game_id, bets_type, book_id)
 );
+CREATE TABLE messages (
+    message_id BIGINT,
+    message_version BIGINT,
+    chat_id BIGINT,
+    text TEXT,
+    buttons_names TEXT,
+    buttons_callbacks TEXT,
+    date_time TIMESTAMP WITH TIME ZONE,
+    PRIMARY KEY(message_id, message_version, chat_id)
+);

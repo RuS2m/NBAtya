@@ -1,13 +1,15 @@
+import ast
 from enum import Enum
 from typing import List
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
 from telegram.ext import run_async
 
-from controller.patterns import five_buttons_pagination_menu, two_buttons_pagination_menu
+from controller.patterns import five_buttons_pagination_menu
+from model.dao import get_previous_message
 from model.dao import get_seasons_page, get_season_by_id
 from model.models import SeasonPage
-from utils.utils import get_logger, invisible_character
+from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
 
 logger = get_logger()
 
@@ -25,7 +27,7 @@ def start(bot: Bot, update: Update):
 
 @run_async
 def seasons(bot: Bot, update: Update):
-    seasons_page(bot, update.message.chat.id, 1, AnswerMode.SEND_NEW)
+    seasons_page(bot, update.effective_message.chat.id, 1, AnswerMode.SEND_NEW, update.effective_message)
 
 
 @run_async
@@ -54,13 +56,11 @@ def seasons_page(bot: Bot, chat_id: int, page_num: int, mode: AnswerMode, messag
         )] for sn in seasons_list]
         custom_keyboard.append(custom_navigation_keyboard)
         if mode == AnswerMode.SEND_NEW:
-            bot.send_message(chat_id=chat_id, text=invisible_character(),
-                             reply_markup=InlineKeyboardMarkup(custom_keyboard),
-                             parse_mode='HTML')
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard, False)
         elif mode == AnswerMode.EDIT:
-            bot.edit_message_text(text=invisible_character(), message_id=int(message_info['message_id']),
-                                  chat_id=chat_id, parse_mode='HTML',
-                                  reply_markup=InlineKeyboardMarkup(custom_keyboard))
+            print(message_info)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   True)
     else:
         bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
 
@@ -77,16 +77,24 @@ def season_button(bot: Bot, update: Update):
 @run_async
 def season(bot: Bot, chat_id: int, season_id: int, message_info: dict):
     found_season = get_season_by_id(season_id)
-    current_message_id = 1  # FIXME: add caching logic for `BACK` procedure
-    custom_keyboard = InlineKeyboardMarkup([[InlineKeyboardButton(
-        text="BACK", callback_data='b_#' + str(current_message_id))]])
+    current_message_id = int(message_info['message_id'])
+    custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
     if found_season is None:
-        bot.edit_message_text(text="<b>There is no season with this index</b>",
-                              message_id=int(message_info['message_id']), chat_id=chat_id,
-                              parse_mode='HTML', reply_markup=custom_keyboard, disable_web_page_preview=True)
+        text = "<b>There is no season with this index</b>"
     else:
-        bot.edit_message_text(text=str(found_season), message_id=int(message_info['message_id']), chat_id=chat_id,
-                              parse_mode='HTML', reply_markup=custom_keyboard, disable_web_page_preview=True)
+        text = str(found_season)
+    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard,True)
+
+
+@run_async
+def back_button(bot: Bot, update: Update):
+    message_id = update.effective_message.message_id
+    chat_id = update.effective_message.chat.id
+    message = get_previous_message(int(chat_id), int(message_id))
+    text = message.text
+    custom_keyboard = inline_keyboard_from_buttons_lists(message.buttons_names, message.buttons_callbacks)
+    bot.edit_message_text(text=text, message_id=message_id, chat_id=chat_id, parse_mode='HTML',
+                          reply_markup=InlineKeyboardMarkup(custom_keyboard))
 
 
 def error(update, context):
