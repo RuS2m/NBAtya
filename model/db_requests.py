@@ -6,6 +6,10 @@ from database_connect import engine
 from model.models import SeasonPage, Season, Message
 
 """
+* Seasons block *
+"""
+
+"""
 Request to get number of all seasons in `seasons` table
 """
 def get_seasons_num() -> int:
@@ -80,6 +84,9 @@ def get_season_by_id(season_id: int) -> Season:
                       fta, ft_pct,
                       oreb, dreb, reb, ast, stl, blk, tov, pf, pts)
 
+"""
+* Players block *
+"""
 
 """
 Request to get number of all players in `players` table
@@ -93,6 +100,10 @@ def get_players_num():
     session.close()
     return rs.first()[0]
 
+
+"""
+* Messages block *
+"""
 
 """
 Request to get previous message from `messages` table:

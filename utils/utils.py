@@ -1,7 +1,9 @@
 import logging
 from typing import Tuple, List
+
 from telegram import InlineKeyboardButton, Bot, InlineKeyboardMarkup
-from model.dao import put_message, to_str
+
+from model.db_requests import put_message
 from model.models import Message
 
 """

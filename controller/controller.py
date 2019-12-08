@@ -1,13 +1,12 @@
-import ast
 from enum import Enum
 from typing import List
 
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
 from telegram.ext import run_async
 
-from controller.patterns import five_buttons_pagination_menu
-from model.dao import get_previous_message
-from model.dao import get_seasons_page, get_season_by_id
+from controller.view_patterns import five_buttons_pagination_menu
+from model.db_requests import get_previous_message
+from model.db_requests import get_seasons_page, get_season_by_id
 from model.models import SeasonPage
 from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
 
