@@ -5,9 +5,10 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
 from telegram.ext import run_async
 
 from controller.view_patterns import five_buttons_pagination_menu
-from model.db_requests import get_previous_message, get_last_message, get_season_by_name
+from model.db_requests import get_previous_message, get_last_message, get_season_by_name, get_teams_page, \
+    get_team_by_id, get_team_by_name, get_teams_in_seasons_page, get_season_team
 from model.db_requests import get_seasons_page, get_season_by_id
-from model.models import SeasonPage
+from model.models import SeasonPage, TeamsPage
 from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
 
 logger = get_logger()
@@ -22,31 +23,6 @@ class AnswerMode(Enum):
 def start(bot: Bot, update: Update):
     chat_id = update.message.chat.id
     bot.send_message(chat_id=chat_id, text='Start!')
-
-
-@run_async
-def popup_statistics(bot: Bot, update: Update):
-    chat_id = update.message.chat.id
-    # users_message_id = update.message.message_id
-    # bot.delete_message(chat_id, users_message_id)
-    message = get_last_message(chat_id)
-    custom_keyboard = inline_keyboard_from_buttons_lists(message.buttons_names, message.buttons_callbacks)
-    message_parts = str(message.text).split('---')
-    if len(message_parts) > 1:
-        # part for seasons
-        if message_parts[1].find('Show season statistics') != -1:
-            season_name = message_parts[0].split('\n')[0][3:-4]
-            season = get_season_by_name(season_name)
-            new_text = message_parts[0] + '---\nRemove season statistics: /stat\n' + str(season.statistics)
-            send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
-        if message_parts[1].find('Remove season statistics') != -1:
-            new_text = message_parts[0] + '---\nShow season statistics: /stat\n'
-            print(new_text)
-            send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
-            bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=new_text,
-                                  reply_markup=InlineKeyboardMarkup(custom_keyboard), parse_mode='HTML')
-    else:
-        send_message_with_save(bot, message.message_id, chat_id, 'There is no statistics in previous message', custom_keyboard, True, False)
 
 
 @run_async
@@ -109,6 +85,170 @@ def season(bot: Bot, chat_id: int, season_id: int, message_info: dict):
     else:
         text = str(found_season)
     send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
+
+
+@run_async
+def teams(bot: Bot, update: Update):
+    teams_page(bot, update.effective_message.chat.id, 1, AnswerMode.SEND_NEW, update.effective_message)
+
+
+@run_async
+def teams_navigation_button(bot: Bot, update: Update):
+    query = update.callback_query
+    print(query)
+    message = update.effective_message
+    chat_id = update.effective_chat['id']
+    page_num = query.data.split(sep='#')[1]
+    teams_page(bot, chat_id, int(page_num), AnswerMode.EDIT, message)
+
+@run_async
+def teams_page(bot: Bot, chat_id: int, page_num: int, mode: AnswerMode, message_info: dict = None):
+    request_is_correct = True
+    teams_list: List[TeamsPage] = get_teams_page(page_num, 5)
+    custom_navigation_keyboard = []
+    if len(teams_list) == 0:
+        request_is_correct = False
+    else:
+        total = teams_list[0].total
+        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'tm_pg', chat_id)
+    if request_is_correct:
+        custom_keyboard = [[InlineKeyboardButton(
+            text=tm.team_name + " (" + tm.abbreviation + ")",
+            callback_data='tm_#' + str(tm.team_id)
+        )] for tm in teams_list]
+        custom_keyboard.append(custom_navigation_keyboard)
+        if mode == AnswerMode.SEND_NEW:
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   False)
+        elif mode == AnswerMode.EDIT:
+            print(message_info)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   True)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
+
+@run_async
+def team_button(bot: Bot, update: Update):
+    query = update.callback_query
+    message = update.effective_message
+    chat_id = update.effective_chat['id']
+    team_id = query.data.split(sep='#')[1]
+    team(bot, chat_id, team_id, message)
+
+
+@run_async
+def team(bot: Bot, chat_id: int, team_id: int, message_info: dict):
+    found_team = get_team_by_id(team_id)
+    current_message_id = int(message_info['message_id'])
+    custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
+    if found_team is None:
+        text = "<b>There is no team with this index</b>"
+    else:
+        text = str(found_team)
+    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
+
+
+@run_async
+def team_in_season(bot: Bot, chat_id: int, team_id: int, season_id: int, message_info: dict):
+    print("\n\n" + str(season_id) + "\n\n\n")
+    print("\n\n" + str(team_id) + "\n\n\n")
+    found_team = get_season_team(team_id, season_id)
+    current_message_id = int(message_info['message_id'])
+    custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
+    if found_team is None:
+        text = "<b>There are problems with team and/or season indexes</b>"
+    else:
+        text = str(found_team)
+    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
+
+
+@run_async
+def teams_in_seasons_navigation_button(bot: Bot, update: Update):
+    query = update.callback_query
+    print(query)
+    message = update.effective_message
+    print(message)
+    chat_id = update.effective_chat['id']
+    season_id = query.data.split(sep='#')[1]
+    page_num = query.data.split(sep='#')[2]
+    team_in_season_page(bot, chat_id, int(season_id), int(page_num), AnswerMode.EDIT, message)
+
+@run_async
+def team_in_season_button(bot: Bot, update: Update):
+    query = update.callback_query
+    message = update.effective_message
+    chat_id = update.effective_chat['id']
+    season_id = query.data.split(sep='#')[1]
+    team_id = query.data.split(sep='#')[2]
+    team_in_season(bot, chat_id, int(season_id), int(team_id), message)
+
+
+@run_async
+def team_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, mode: AnswerMode, message_info: dict = None):
+    request_is_correct = True
+    teams_list: List[TeamsPage] = get_teams_in_seasons_page(season_id, page_num, 5)
+    custom_navigation_keyboard = []
+    if len(teams_list) == 0:
+        request_is_correct = False
+    else:
+        total = teams_list[0].total
+        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'tmsn_pg#'+str(season_id), chat_id)
+    if request_is_correct:
+        custom_keyboard = [[InlineKeyboardButton(
+            text=tm.team_name + " (" + tm.abbreviation + ")",
+            callback_data='tmsn_#' + str(tm.team_id) + "#" + str(season_id)
+        )] for tm in teams_list]
+        custom_keyboard.append(custom_navigation_keyboard)
+        custom_keyboard.append([InlineKeyboardButton(text="BACK", callback_data='b_')])
+        if mode == AnswerMode.SEND_NEW:
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   False)
+        elif mode == AnswerMode.EDIT:
+            print(message_info)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   True)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
+
+
+@run_async
+def teams_in_season(bot: Bot, update: Update):
+    chat_id = update.message.chat.id
+    message = get_last_message(chat_id)
+    message_parts = str(message.text).split('\n')
+    if len(message_parts) >= 2 and message_parts[2] == 'Teams in season: /tms':
+        season_name = message_parts[0][3:-4]
+        season = get_season_by_name(season_name)
+        team_in_season_page(bot, chat_id, int(season.season_id), 1, AnswerMode.EDIT, message.__dict__)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no teams link in previous message</b>", parse_mode='HTML')
+
+@run_async
+def popup_statistics(bot: Bot, update: Update):
+    chat_id = update.message.chat.id
+    # users_message_id = update.message.message_id
+    # bot.delete_message(chat_id, users_message_id)
+    message = get_last_message(chat_id)
+    custom_keyboard = inline_keyboard_from_buttons_lists(message.buttons_names, message.buttons_callbacks)
+    new_text = ""
+    message_parts = str(message.text).split('---')
+    if len(message_parts) > 1:
+        # part for seasons
+        if message_parts[1].find('Show season statistics') != -1:
+            season_name = message_parts[0].split('\n')[0][3:-4]
+            season = get_season_by_name(season_name)
+            new_text = message_parts[0] + '---\nRemove season statistics: /stat\n' + str(season.statistics)
+        elif message_parts[1].find('Remove season statistics') != -1:
+            new_text = message_parts[0] + '---\nShow season statistics: /stat\n'
+        elif message_parts[1].find('Show team statistics') != -1:
+            team_name = message_parts[0].split('</b>')[0][3:]
+            team = get_team_by_name(team_name)
+            new_text = message_parts[0] + '---\nRemove team statistics: /stat\n' + str(team.statistics)
+        elif message_parts[1].find('Remove team statistics') != -1:
+            new_text = message_parts[0] + '---\nShow team statistics: /stat\n'
+        send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
+    else:
+        send_message_with_save(bot, message.message_id, chat_id, 'There is no statistics in previous message', custom_keyboard, False, False)
 
 
 @run_async

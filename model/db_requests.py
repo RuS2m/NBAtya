@@ -3,15 +3,11 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from database_connect import engine
-from model.models import SeasonPage, Season, Message
+from model.models import SeasonPage, Season, Message, TeamsPage, Team
 
-"""
-* Seasons block *
-"""
+""" * Seasons block * """
 
-"""
-Request to get number of all seasons in `seasons` table
-"""
+
 def get_seasons_num() -> int:
     session = Session(engine)
     rs = session.execute(
@@ -22,9 +18,6 @@ def get_seasons_num() -> int:
     return rs.first()[0]
 
 
-"""
-Request to get a single seasons page from `seasons` table
-"""
 def get_seasons_page(page: int, per_page: int) -> List[SeasonPage]:
     session = Session(engine)
     offset = 0
@@ -44,9 +37,6 @@ def get_seasons_page(page: int, per_page: int) -> List[SeasonPage]:
     return answer
 
 
-"""
-Request to get season by id
-"""
 def get_season_by_id(season_id: int) -> Season:
     session = Session(engine)
     rs = session.execute(
@@ -56,33 +46,11 @@ def get_season_by_id(season_id: int) -> Season:
         {"session_id": season_id})
 
     for row in rs:
-        season_name = row[1]
-        season_type = row[2]
-        season_year = row[3]
-        min = row[4]
-        fgm = row[5]
-        fga = row[6]
-        fg_pct = row[7]
-        fg3m = row[8]
-        fg3a = row[9]
-        fg3_pct = row[10]
-        ftm = row[11]
-        fta = row[12]
-        ft_pct = row[13]
-        oreb = row[14]
-        dreb = row[15]
-        reb = row[16]
-        ast = row[17]
-        stl = row[18]
-        blk = row[19]
-        tov = row[20]
-        pf = row[21]
-        pts = row[22]
         session.commit()
         session.close()
-        return Season(season_id, season_name, season_type, season_year, min, fgm, fga, fg_pct, fg3m, fg3a, fg3_pct, ftm,
-                      fta, ft_pct,
-                      oreb, dreb, reb, ast, stl, blk, tov, pf, pts)
+        return Season(season_id, row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10],
+                      row[11], row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21],
+                      row[22])
 
 
 def get_season_by_name(season_name: str) -> Season:
@@ -94,41 +62,119 @@ def get_season_by_name(season_name: str) -> Season:
         {"season_name": season_name})
 
     for row in rs:
-        season_id = row[0]
-        season_type = row[2]
-        season_year = row[3]
-        min = row[4]
-        fgm = row[5]
-        fga = row[6]
-        fg_pct = row[7]
-        fg3m = row[8]
-        fg3a = row[9]
-        fg3_pct = row[10]
-        ftm = row[11]
-        fta = row[12]
-        ft_pct = row[13]
-        oreb = row[14]
-        dreb = row[15]
-        reb = row[16]
-        ast = row[17]
-        stl = row[18]
-        blk = row[19]
-        tov = row[20]
-        pf = row[21]
-        pts = row[22]
         session.commit()
         session.close()
-        return Season(season_id, season_name, season_type, season_year, min, fgm, fga, fg_pct, fg3m, fg3a, fg3_pct, ftm,
-                      fta, ft_pct,
-                      oreb, dreb, reb, ast, stl, blk, tov, pf, pts)
+        return Season(row[0], season_name, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10],
+                      row[11],
+                      row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22])
 
-"""
-* Players block *
-"""
 
-"""
-Request to get number of all players in `players` table
-"""
+def get_season_team(team_id: int, season_id: int) -> Team:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT season_team.season_id, season_team.team_id, teams.abbreviation, teams.team_name, teams.foundation_year, "
+        "season_team.min, season_team.fgm, season_team.fga, season_team.fg_pct, season_team.fg3m, season_team.fg3a, "
+        "season_team.fg3_pct, season_team.ftm, season_team.fta, season_team.ft_pct, season_team.oreb, season_team.dreb, "
+        "season_team.reb, season_team.ast, season_team.stl, season_team.blk, season_team.tov, season_team.pf, "
+        "season_team.pts FROM season_team "
+        "INNER JOIN teams ON teams.team_id = season_team.team_id "
+        "WHERE season_team.team_id = :team_id AND season_id = :season_id",
+        {"team_id": team_id, "season_id": season_id}
+    )
+    for row in rs:
+        session.commit()
+        session.close()
+        return Team(team_id, row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11], row[12],
+                    row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22], row[23])
+
+
+def get_teams_in_seasons_page(season_id: int, page: int, per_page: int) -> List[TeamsPage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    total = int(int(get_teams_num()) / per_page) + int(int(get_teams_num()) % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT team_id, abbreviation, team_name FROM teams "
+        "WHERE team_id IN "
+        "(SELECT team_id FROM season_team WHERE season_id = :season_id) "
+        "ORDER BY team_name "
+        "LIMIT :per_page OFFSET :offset", {"season_id": season_id, "per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(TeamsPage(row[0], row[1], row[2], page, total))
+    session.commit()
+    session.close()
+    return answer
+
+
+""" * Teams block * """
+
+
+def get_teams_num() -> int:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT COUNT(*) FROM teams"
+    )
+    session.commit()
+    session.close()
+    return rs.first()[0]
+
+
+def get_teams_page(page: int, per_page: int) -> List[TeamsPage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    total = int(int(get_teams_num()) / per_page) + int(int(get_teams_num()) % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT team_id, abbreviation, team_name FROM teams ORDER BY team_name "
+        "LIMIT :per_page OFFSET :offset", {"per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(TeamsPage(row[0], row[1], row[2], page, total))
+    session.commit()
+    session.close()
+    return answer
+
+
+def get_team_by_id(team_id: int) -> Team:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT team_id, abbreviation, team_name, foundation_year, min, fgm, fga, fg_pct, fg3m, fg3a, "
+        "fg3_pct, ftm, fta, ft_pct, oreb, dreb, reb, ast, stl, blk, tov, pf, pts "
+        "FROM teams WHERE team_id = :team_id",
+        {"team_id": team_id})
+
+    for row in rs:
+        session.commit()
+        session.close()
+        return Team(team_id, row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11],
+                    row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22])
+
+
+def get_team_by_name(team_name: str) -> Team:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT team_id, abbreviation, team_name, foundation_year, min, fgm, fga, fg_pct, fg3m, fg3a, "
+        "fg3_pct, ftm, fta, ft_pct, oreb, dreb, reb, ast, stl, blk, tov, pf, pts "
+        "FROM teams WHERE team_name = :team_name",
+        {"team_name": team_name})
+
+    for row in rs:
+        session.commit()
+        session.close()
+        return Team(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11],
+                    row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22])
+
+
+""" * Players block * """
+
+
 def get_players_num():
     session = Session(engine)
     rs = session.execute(
@@ -139,9 +185,7 @@ def get_players_num():
     return rs.first()[0]
 
 
-"""
-* Messages block *
-"""
+""" * Messages block * """
 
 """
 Request to get previous message from `messages` table:
@@ -149,6 +193,8 @@ Request to get previous message from `messages` table:
 It scans all messages in current chat(which is specified with `chat_id`), orders it by date, they were added
 and looks for last `message_id`, except for current, and rebuilds it's message from row
 """
+
+
 def get_previous_message(chat_id: int, message_id: int) -> Message:
     session = Session(engine)
     rs = session.execute(
@@ -160,12 +206,6 @@ def get_previous_message(chat_id: int, message_id: int) -> Message:
         "DESC LIMIT 1",
         {"message_id": message_id, "chat_id": chat_id})
     for row in rs:
-        new_message_id = int(row[0])
-        message_version = int(row[1])
-        chat_id = int(row[2])
-        text = row[3]
-        buttons_names = row[4]
-        buttons_callbacks = row[5]
         session.execute(
             "DELETE FROM messages WHERE message_id = :message_id AND chat_id = :chat_id AND is_available = TRUE "
             "AND date_time = "
@@ -173,7 +213,9 @@ def get_previous_message(chat_id: int, message_id: int) -> Message:
             {"message_id": message_id, "chat_id": chat_id})
         session.commit()
         session.close()
-        return Message(new_message_id, message_version, chat_id, text, from_str(buttons_names), from_str(buttons_callbacks), True)
+        return Message(int(row[0]), int(row[1]), int(row[2]), row[3], from_str(row[4]),
+                       from_str(row[5]), True)
+
 
 def get_last_message(chat_id: int) -> Message:
     session = Session(engine)
@@ -184,16 +226,10 @@ def get_last_message(chat_id: int) -> Message:
         "LIMIT 1",
         {"chat_id": chat_id})
     for row in rs:
-        message_id = int(row[0])
-        message_version = int(row[1])
-        chat_id = int(row[2])
-        text = row[3]
-        buttons_names = row[4]
-        buttons_callbacks = row[5]
-        is_available = row[6]
         session.commit()
         session.close()
-        return Message(message_id, message_version, chat_id, text, from_str(buttons_names), from_str(buttons_callbacks), is_available)
+        return Message(int(row[0]), int(row[1]), int(row[2]), row[3], from_str(row[4]), from_str(row[5]),
+                       row[6])
 
 
 """
@@ -202,6 +238,8 @@ Request to put new message into `messages` table:
 It scans all messages in current chat, orders it by date, they were added
 and looks for last `message_id`, except for current, adding also simple logic to get new message's version
 """
+
+
 def put_message(message: Message) -> None:
     session = Session(engine)
     session.execute(
@@ -211,7 +249,8 @@ def put_message(message: Message) -> None:
         "ELSE (SELECT (COALESCE(message_version, 0)+1) AS answer FROM messages WHERE message_id = :message_id AND chat_id = :chat_id ORDER BY date_time DESC LIMIT 1) "
         "END) AS answer, :chat_id, :text, :buttons_names, :buttons_callbacks, now(), :is_available",
         {"message_id": message.message_id, "message_version": message.message_version, "chat_id": message.chat_id,
-         "text": message.text, "buttons_names": to_str(message.buttons_names), "buttons_callbacks": to_str(message.buttons_callbacks),
+         "text": message.text, "buttons_names": to_str(message.buttons_names),
+         "buttons_callbacks": to_str(message.buttons_callbacks),
          "is_available": message.is_available})
     session.commit()
     session.close()
@@ -219,6 +258,7 @@ def put_message(message: Message) -> None:
 
 def to_str(texts_list: List[List[str]]) -> str:
     return "\n".join(map(lambda sublist: "[" + "\t".join(sublist) + "]", texts_list))
+
 
 def from_str(text: str) -> List[List[str]]:
     return list(map(lambda array_as_str: str(array_as_str)[1:-1].split('\t'), text.split('\n')))

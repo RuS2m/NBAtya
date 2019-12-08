@@ -54,7 +54,7 @@ def five_buttons_pagination_menu(total: int, page_num: int, callback_pattern: st
         custom_navigation_keyboard.append(str(max_next_number) + '»')
     return [InlineKeyboardButton(
         text=s,
-        callback_data=callback_pattern + '#' + re.search(r'\d+', str(s)).group() + "#chat_id_#" + str(chat_id)
+        callback_data=callback_pattern + '#' + re.search(r'\d+', str(s)).group()
     ) for s in custom_navigation_keyboard]
 
 """
