@@ -44,10 +44,10 @@ def inline_keyboard_from_buttons_lists(buttons_texts: List[List[str]], buttons_c
 send message with save it to database
 """
 def send_message_with_save(bot: Bot, message_id: int, chat_id: int, text: str,
-                           custom_keyboard: List[List[InlineKeyboardButton]], edit_mode: bool):
+                           custom_keyboard: List[List[InlineKeyboardButton]], edit_mode: bool, is_available: bool = True):
     buttons_texts, buttons_callbacks = parse_inline_keyboard(custom_keyboard)
-    print(Message(message_id, 0, chat_id, text, buttons_texts, buttons_callbacks))
-    put_message(Message(message_id, 0, chat_id, text, buttons_texts, buttons_callbacks))
+    print(Message(message_id, 0, chat_id, text, buttons_texts, buttons_callbacks, is_available))
+    put_message(Message(message_id, 0, chat_id, text, buttons_texts, buttons_callbacks, is_available))
     if edit_mode is False:
         bot.send_message(text=text, message_id=message_id, chat_id=chat_id, parse_mode='HTML',
                          disable_web_page_preview=True, disable_notification=True,

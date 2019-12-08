@@ -13,6 +13,7 @@ if __name__ == '__main__':
     try:
         dispatcher.add_handler(CommandHandler(command='start', callback=start))
         dispatcher.add_handler(CommandHandler(command='seasons', callback=seasons))
+        dispatcher.add_handler(CommandHandler(command='stat', callback=popup_statistics))
         dispatcher.add_handler(CallbackQueryHandler(seasons_navigation_button, pattern=r"sn_pg"))
         dispatcher.add_handler(CallbackQueryHandler(season_button, pattern=r"sn_"))
         dispatcher.add_handler(CallbackQueryHandler(back_button, pattern=r"b_"))

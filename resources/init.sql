@@ -207,5 +207,6 @@ CREATE TABLE messages (
     buttons_names TEXT,
     buttons_callbacks TEXT,
     date_time TIMESTAMP WITH TIME ZONE,
+    is_available BOOLEAN,
     PRIMARY KEY(message_id, message_version, chat_id)
 );

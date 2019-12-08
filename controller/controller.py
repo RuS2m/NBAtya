@@ -5,7 +5,7 @@ from telegram import InlineKeyboardMarkup, InlineKeyboardButton, Update, Bot
 from telegram.ext import run_async
 
 from controller.view_patterns import five_buttons_pagination_menu
-from model.db_requests import get_previous_message
+from model.db_requests import get_previous_message, get_last_message, get_season_by_name
 from model.db_requests import get_seasons_page, get_season_by_id
 from model.models import SeasonPage
 from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
@@ -22,6 +22,31 @@ class AnswerMode(Enum):
 def start(bot: Bot, update: Update):
     chat_id = update.message.chat.id
     bot.send_message(chat_id=chat_id, text='Start!')
+
+
+@run_async
+def popup_statistics(bot: Bot, update: Update):
+    chat_id = update.message.chat.id
+    # users_message_id = update.message.message_id
+    # bot.delete_message(chat_id, users_message_id)
+    message = get_last_message(chat_id)
+    custom_keyboard = inline_keyboard_from_buttons_lists(message.buttons_names, message.buttons_callbacks)
+    message_parts = str(message.text).split('---')
+    if len(message_parts) > 1:
+        # part for seasons
+        if message_parts[1].find('Show season statistics') != -1:
+            season_name = message_parts[0].split('\n')[0][3:-4]
+            season = get_season_by_name(season_name)
+            new_text = message_parts[0] + '---\nRemove season statistics: /stat\n' + str(season.statistics)
+            send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
+        if message_parts[1].find('Remove season statistics') != -1:
+            new_text = message_parts[0] + '---\nShow season statistics: /stat\n'
+            print(new_text)
+            send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
+            bot.edit_message_text(chat_id=chat_id, message_id=message.message_id, text=new_text,
+                                  reply_markup=InlineKeyboardMarkup(custom_keyboard), parse_mode='HTML')
+    else:
+        send_message_with_save(bot, message.message_id, chat_id, 'There is no statistics in previous message', custom_keyboard, True, False)
 
 
 @run_async
@@ -55,7 +80,8 @@ def seasons_page(bot: Bot, chat_id: int, page_num: int, mode: AnswerMode, messag
         )] for sn in seasons_list]
         custom_keyboard.append(custom_navigation_keyboard)
         if mode == AnswerMode.SEND_NEW:
-            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard, False)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   False)
         elif mode == AnswerMode.EDIT:
             print(message_info)
             send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
@@ -82,7 +108,7 @@ def season(bot: Bot, chat_id: int, season_id: int, message_info: dict):
         text = "<b>There is no season with this index</b>"
     else:
         text = str(found_season)
-    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard,True)
+    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
 
 
 @run_async

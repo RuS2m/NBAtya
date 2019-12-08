@@ -38,6 +38,11 @@ class Statistics:
         self.tov = tov
         self.pf = pf
         self.pts = pts
+    def __str__(self):
+        return "some statistics staff here:\n\n" \
+               "- blah blah blah\n" \
+               "- blah blah blah\n" \
+               "- blah blah\n"
 
 
 class Season:
@@ -91,11 +96,11 @@ class Season:
             pts)
 
     def __str__(self):
-        # FIXME: add logic for statistics pop-up
         return '<b>{}</b>\n\n' \
                '<i>type</i>: {}\n' \
                '<i>year</i>: {}\n\n' \
-               'TBA: <a href="https://ya.ru">Statistics</a>\n' \
+               '---\n' \
+               'Show season statistics: /stat\n' \
                ''.format(self.season_name, self.season_type, self.season_year)
 
 
@@ -121,13 +126,15 @@ class Message:
                  chat_id,
                  text,
                  buttons_names,
-                 buttons_callbacks):
+                 buttons_callbacks,
+                 is_available):
         self.message_id = message_id
         self.message_version = message_version
         self.chat_id = chat_id
         self.text = text
         self.buttons_names = buttons_names
         self.buttons_callbacks = buttons_callbacks
+        self.is_available = is_available
 
     def __str__(self):
         return 'message {}\n' \
@@ -135,6 +142,7 @@ class Message:
                'chat {}\n' \
                'text {}\n' \
                'buttons_names {}\n' \
-               'buttons_callbacks {}' \
+               'buttons_callbacks {}\n' \
+               'is_available: {}' \
                ''.format(self.message_id, self.message_version, self.chat_id, self.text, self.buttons_names,
-                         self.buttons_callbacks)
+                         self.buttons_callbacks, self.is_available)
