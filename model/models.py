@@ -139,6 +139,13 @@ class Season:
                'Show season statistics: /stat\n' \
                ''.format(self.season_name)
 
+    def fake_str(self):
+        return '<b>{}</b>\n\n' \
+               'Go to season\'s page: /origin\n\n' \
+               '---\n' \
+               'Show team statistics: /stat\n' \
+               ''.format(self.season_name)
+
 
 class SeasonPage:
     def __init__(self, season_id, season_name, season_type, season_year, page, total):
@@ -213,6 +220,12 @@ class Team:
                'Show team statistics: /stat\n' \
                ''.format(self.team_name, self.abbreviation, self.foundation_year)
 
+    def fake_str(self):
+        return '<b>{}</b> <b>({})</b>\n\n' \
+               'Go to team\'s page: /origin\n\n' \
+               '---\n' \
+               'Show team statistics: /stat\n' \
+               ''.format(self.team_name, self.abbreviation)
 
 class TeamsPage:
     def __init__(self, team_id, abbreviation, team_name, page, total):

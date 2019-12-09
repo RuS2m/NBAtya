@@ -16,6 +16,7 @@ if __name__ == '__main__':
         dispatcher.add_handler(CommandHandler(command='teams', callback=teams))
         dispatcher.add_handler(CommandHandler(command='stat', callback=popup_statistics))
         dispatcher.add_handler(CommandHandler(command='tms', callback=teams_in_season))
+        dispatcher.add_handler(CommandHandler(command='origin', callback=go_to_origin))
         dispatcher.add_handler(CallbackQueryHandler(seasons_navigation_button, pattern=r"sn_pg"))
         dispatcher.add_handler(CallbackQueryHandler(teams_navigation_button, pattern=r"tm_pg"))
         dispatcher.add_handler(CallbackQueryHandler(teams_in_seasons_navigation_button, pattern=r"tmsn_pg"))

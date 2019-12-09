@@ -101,6 +101,7 @@ def teams_navigation_button(bot: Bot, update: Update):
     page_num = query.data.split(sep='#')[1]
     teams_page(bot, chat_id, int(page_num), AnswerMode.EDIT, message)
 
+
 @run_async
 def teams_page(bot: Bot, chat_id: int, page_num: int, mode: AnswerMode, message_info: dict = None):
     request_is_correct = True
@@ -127,6 +128,7 @@ def teams_page(bot: Bot, chat_id: int, page_num: int, mode: AnswerMode, message_
     else:
         bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
 
+
 @run_async
 def team_button(bot: Bot, update: Update):
     query = update.callback_query
@@ -150,15 +152,13 @@ def team(bot: Bot, chat_id: int, team_id: int, message_info: dict):
 
 @run_async
 def team_in_season(bot: Bot, chat_id: int, team_id: int, season_id: int, message_info: dict):
-    print("\n\n" + str(season_id) + "\n\n\n")
-    print("\n\n" + str(team_id) + "\n\n\n")
     found_team = get_season_team(team_id, season_id)
     current_message_id = int(message_info['message_id'])
     custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
     if found_team is None:
         text = "<b>There are problems with team and/or season indexes</b>"
     else:
-        text = str(found_team)
+        text = found_team.fake_str()
     send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
 
 
@@ -173,6 +173,7 @@ def teams_in_seasons_navigation_button(bot: Bot, update: Update):
     page_num = query.data.split(sep='#')[2]
     team_in_season_page(bot, chat_id, int(season_id), int(page_num), AnswerMode.EDIT, message)
 
+
 @run_async
 def team_in_season_button(bot: Bot, update: Update):
     query = update.callback_query
@@ -184,7 +185,8 @@ def team_in_season_button(bot: Bot, update: Update):
 
 
 @run_async
-def team_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, mode: AnswerMode, message_info: dict = None):
+def team_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, mode: AnswerMode,
+                        message_info: dict = None):
     request_is_correct = True
     teams_list: List[TeamsPage] = get_teams_in_seasons_page(season_id, page_num, 5)
     custom_navigation_keyboard = []
@@ -192,7 +194,7 @@ def team_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, m
         request_is_correct = False
     else:
         total = teams_list[0].total
-        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'tmsn_pg#'+str(season_id), chat_id)
+        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'tmsn_pg#' + str(season_id), chat_id)
     if request_is_correct:
         custom_keyboard = [[InlineKeyboardButton(
             text=tm.team_name + " (" + tm.abbreviation + ")",
@@ -223,6 +225,25 @@ def teams_in_season(bot: Bot, update: Update):
     else:
         bot.send_message(chat_id=chat_id, text="<b>There is no teams link in previous message</b>", parse_mode='HTML')
 
+
+@run_async
+def go_to_origin(bot: Bot, update: Update):
+    chat_id = update.message.chat.id
+    message = get_last_message(chat_id)
+    custom_keyboard = inline_keyboard_from_buttons_lists(message.buttons_names, message.buttons_callbacks)
+    message_parts = str(message.text).split('\n')
+    if len(message_parts) >= 2:
+        if message_parts[2] == 'Go to team\'s page: /origin':
+            team_name = str(message.text).split('</b>')[0][3:]
+            team(bot, chat_id, get_team_by_name(team_name).team_id, message.__dict__)
+        if message_parts[2] == 'Go to season\'s page: /origin':
+            season_name = message_parts[0].split('\n')[0][3:-4]
+            season(bot, chat_id, get_season_by_name(season_name).season_id, message.__dict__)
+    else:
+        send_message_with_save(bot, message.message_id, chat_id, '<b>There is no links to entities\' origin in previous message</b>',
+                               custom_keyboard, False, False)
+
+
 @run_async
 def popup_statistics(bot: Bot, update: Update):
     chat_id = update.message.chat.id
@@ -248,7 +269,8 @@ def popup_statistics(bot: Bot, update: Update):
             new_text = message_parts[0] + '---\nShow team statistics: /stat\n'
         send_message_with_save(bot, message.message_id, chat_id, new_text, custom_keyboard, True, False)
     else:
-        send_message_with_save(bot, message.message_id, chat_id, 'There is no statistics in previous message', custom_keyboard, False, False)
+        send_message_with_save(bot, message.message_id, chat_id, '<b>There is no statistics in previous message</b>',
+                               custom_keyboard, False, False)
 
 
 @run_async
