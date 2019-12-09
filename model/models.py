@@ -143,7 +143,7 @@ class Season:
         return '<b>{}</b>\n\n' \
                'Go to season\'s page: /origin\n\n' \
                '---\n' \
-               'Show team statistics: /stat\n' \
+               'Show season statistics: /stat\n' \
                ''.format(self.season_name)
 
 
@@ -215,7 +215,8 @@ class Team:
 
     def __str__(self):
         return '<b>{}</b> <b>({})</b>\n\n' \
-               '<i>Foundation year</i>: {}\n\n' \
+               '<i>Foundation year</i>: {}\n' \
+               'Seasons, where team was participating: /sns\n\n' \
                '---\n' \
                'Show team statistics: /stat\n' \
                ''.format(self.team_name, self.abbreviation, self.foundation_year)

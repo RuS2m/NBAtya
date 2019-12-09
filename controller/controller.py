@@ -6,7 +6,8 @@ from telegram.ext import run_async
 
 from controller.view_patterns import five_buttons_pagination_menu
 from model.db_requests import get_previous_message, get_last_message, get_season_by_name, get_teams_page, \
-    get_team_by_id, get_team_by_name, get_teams_in_seasons_page, get_season_team
+    get_team_by_id, get_team_by_name, get_teams_in_seasons_page, get_season_team, get_seasons_with_team_page, \
+    get_team_season
 from model.db_requests import get_seasons_page, get_season_by_id
 from model.models import SeasonPage, TeamsPage
 from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
@@ -84,6 +85,69 @@ def season(bot: Bot, chat_id: int, season_id: int, message_info: dict):
         text = "<b>There is no season with this index</b>"
     else:
         text = str(found_season)
+    send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
+
+
+@run_async
+def seasons_with_team_navigation_button(bot: Bot, update: Update):
+    query = update.callback_query
+    print(query)
+    message = update.effective_message
+    print(message)
+    chat_id = update.effective_chat['id']
+    team_id = query.data.split(sep='#')[1]
+    page_num = query.data.split(sep='#')[2]
+    seasons_with_team_page(bot, chat_id, int(team_id), int(page_num), AnswerMode.EDIT, message)
+
+
+@run_async
+def season_with_team_button(bot: Bot, update: Update):
+    query = update.callback_query
+    message = update.effective_message
+    chat_id = update.effective_chat['id']
+    team_id = query.data.split(sep='#')[1]
+    season_id = query.data.split(sep='#')[2]
+    season_with_team(bot, chat_id, int(season_id), int(team_id), message)
+
+
+@run_async
+def seasons_with_team_page(bot: Bot, chat_id: int, team_id: int, page_num: int, mode: AnswerMode,
+                        message_info: dict = None):
+    request_is_correct = True
+    seasons_list: List[SeasonPage] = get_seasons_with_team_page(team_id, page_num, 5)
+    custom_navigation_keyboard = []
+    if len(seasons_list) == 0:
+        request_is_correct = False
+    else:
+        total = seasons_list[0].total
+        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'sntm_pg#' + str(team_id), chat_id)
+    if request_is_correct:
+        custom_keyboard = [[InlineKeyboardButton(
+            text=sn.season_name,
+            callback_data='sntm_#' + str(sn.season_id) + "#" + str(team_id)
+        )] for sn in seasons_list]
+        custom_keyboard.append(custom_navigation_keyboard)
+        custom_keyboard.append([InlineKeyboardButton(text="BACK", callback_data='b_')])
+        if mode == AnswerMode.SEND_NEW:
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   False)
+        elif mode == AnswerMode.EDIT:
+            print(message_info)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   True)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
+
+
+@run_async
+def season_with_team(bot: Bot, chat_id: int, team_id: int, season_id: int, message_info: dict):
+    found_season = get_team_season(team_id, season_id)
+    current_message_id = int(message_info['message_id'])
+    custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
+    if found_season is None:
+        text = "<b>There are problems with team and/or season indexes</b>"
+    else:
+        text = found_season.fake_str()
     send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
 
 
@@ -214,7 +278,19 @@ def team_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, m
 
 
 @run_async
-def teams_in_season(bot: Bot, update: Update):
+def season_with_team_link(bot: Bot, update: Update):
+    chat_id = update.message.chat.id
+    message = get_last_message(chat_id)
+    message_parts = str(message.text).split('\n')
+    if len(message_parts) >= 3 and message_parts[3] == 'Seasons, where team was participating: /sns':
+        team_name = message_parts[0].split('</b>')[0][3:]
+        team = get_team_by_name(team_name)
+        seasons_with_team_page(bot, chat_id, int(team.team_id), 1, AnswerMode.EDIT, message.__dict__)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no season link in previous message</b>", parse_mode='HTML')
+
+@run_async
+def teams_in_season_link(bot: Bot, update: Update):
     chat_id = update.message.chat.id
     message = get_last_message(chat_id)
     message_parts = str(message.text).split('\n')
