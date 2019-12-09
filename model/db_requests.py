@@ -241,6 +241,39 @@ def get_teams_in_seasons_page(season_id: int, page: int, per_page: int) -> List[
 """ * Games block * """
 
 
+def get_games_with_team_num(team_name: str) -> int:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT COUNT(DISTINCT(game_id)) FROM games WHERE home_team_name = :team_name OR away_team_name = :team_name",
+        {"team_name": team_name}
+    )
+    session.commit()
+    session.close()
+    return rs.first()[0]
+
+
+def get_games_with_team_page(team_name: str, page: int, per_page: int) -> List[GamePage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    number_of_games = get_games_with_team_num(team_name)
+    total = int(number_of_games / per_page) + int(number_of_games % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT game_id, game_date, season_id, away_team_id, home_team_id, away_abbreviation, home_abbreviation FROM games "
+        "WHERE home_team_name = :team_name OR away_team_name = :team_name "
+        "ORDER BY game_date "
+        "LIMIT :per_page OFFSET :offset", {"team_name": team_name, "per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(GamePage(row[0], row[1], row[2], row[3], row[4], row[5], row[6], page, total))
+    session.commit()
+    session.close()
+    return answer
+
+
 def get_games_in_season_num(season_id: int) -> int:
     session = Session(engine)
     rs = session.execute(

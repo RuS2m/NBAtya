@@ -25,22 +25,26 @@ def five_buttons_pagination_menu(total: int, page_num: int, callback_pattern: st
         -> List[InlineKeyboardButton]:
     custom_navigation_keyboard = []
     if page_num == 1:
+        max_next_number = page_num + 10 if page_num + 10 < total else total
         custom_navigation_keyboard.append('·1·')
         custom_navigation_keyboard.append('2›')
         custom_navigation_keyboard.append('3»')
-        custom_navigation_keyboard.append(str(total) + '»')
+        custom_navigation_keyboard.append(str(max_next_number) + '»')
     elif page_num == 2:
+        max_next_number = page_num + 10 if page_num + 10 < total else total
         custom_navigation_keyboard.append('‹1')
         custom_navigation_keyboard.append('·2·')
         custom_navigation_keyboard.append('3›')
-        custom_navigation_keyboard.append(str(total) + '»')
+        custom_navigation_keyboard.append(str(max_next_number) + '»')
     elif page_num == total - 1:
-        custom_navigation_keyboard.append('«1')
+        max_prev_number = page_num - 10 if page_num - 10 > 0 else 1
+        custom_navigation_keyboard.append('«' + str(max_prev_number))
         custom_navigation_keyboard.append('‹' + str(page_num - 1))
         custom_navigation_keyboard.append('·' + str(page_num) + '·')
         custom_navigation_keyboard.append(str(page_num + 1) + '›')
     elif page_num == total:
-        custom_navigation_keyboard.append('«1')
+        max_prev_number = page_num - 10 if page_num - 10 > 0 else 1
+        custom_navigation_keyboard.append('«' + str(max_prev_number))
         custom_navigation_keyboard.append('«' + str(page_num - 2))
         custom_navigation_keyboard.append('‹' + str(page_num - 1))
         custom_navigation_keyboard.append('·' + str(page_num) + '·')

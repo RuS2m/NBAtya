@@ -217,7 +217,8 @@ class Team:
     def __str__(self):
         return '<b>{}</b> <b>({})</b>\n\n' \
                '<i>Foundation year</i>: {}\n' \
-               'Seasons, where team was participating: /sns\n\n' \
+               'Seasons, where team was participating: /sns\n' \
+               'Team\'s games: /gms\n' \
                '---\n' \
                'Show team statistics: /stat\n' \
                ''.format(self.team_name, self.abbreviation, self.foundation_year)

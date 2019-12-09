@@ -7,7 +7,8 @@ from telegram.ext import run_async
 from controller.view_patterns import five_buttons_pagination_menu
 from model.db_requests import get_previous_message, get_last_message, get_season_by_name, get_teams_page, \
     get_team_by_id, get_team_by_name, get_teams_in_seasons_page, get_season_team, get_seasons_with_team_page, \
-    get_team_season, get_games_in_season_page, get_game_by_id, get_game_by_team_names_and_season_date
+    get_team_season, get_games_in_season_page, get_game_by_id, get_game_by_team_names_and_season_date, \
+    get_games_with_team_page
 from model.db_requests import get_seasons_page, get_season_by_id
 from model.models import SeasonPage, TeamsPage, GamePage
 from utils.utils import get_logger, invisible_character, send_message_with_save, inline_keyboard_from_buttons_lists
@@ -301,7 +302,7 @@ def games_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, 
     if request_is_correct:
         custom_keyboard = [[InlineKeyboardButton(
             text=gm.home_abbreviation + " vs " + gm.away_abbreviation + " on " + gm.game_date,
-            callback_data='gmsn_#' + str(gm.game_id)
+            callback_data='gm_#' + str(gm.game_id)
         )] for gm in games_list]
         custom_keyboard.append(custom_navigation_keyboard)
         custom_keyboard.append([InlineKeyboardButton(text="BACK", callback_data='b_')])
@@ -317,16 +318,16 @@ def games_in_season_page(bot: Bot, chat_id: int, season_id: int, page_num: int, 
 
 
 @run_async
-def game_in_season_button(bot: Bot, update: Update):
+def game_button(bot: Bot, update: Update):
     query = update.callback_query
     message = update.effective_message
     chat_id = update.effective_chat['id']
     game_id = query.data.split(sep='#')[1]
-    game_in_season(bot, chat_id, int(game_id), message.__dict__)
+    game(bot, chat_id, int(game_id), message.__dict__)
 
 
 @run_async
-def game_in_season(bot: Bot, chat_id: int, game_id: int, message_info: dict):
+def game(bot: Bot, chat_id: int, game_id: int, message_info: dict):
     found_game = get_game_by_id(game_id)
     current_message_id = int(message_info['message_id'])
     custom_keyboard = [[InlineKeyboardButton(text="BACK", callback_data='b_')]]
@@ -335,6 +336,45 @@ def game_in_season(bot: Bot, chat_id: int, game_id: int, message_info: dict):
     else:
         text = str(found_game)
     send_message_with_save(bot, int(current_message_id), int(chat_id), text, custom_keyboard, True)
+
+
+@run_async
+def games_with_team_navigation_button(bot: Bot, update: Update):
+    query = update.callback_query
+    message = update.effective_message
+    chat_id = update.effective_chat['id']
+    team_name = query.data.split(sep='#')[1]
+    page_num = query.data.split(sep='#')[2]
+    games_with_team_page(bot, chat_id, team_name, int(page_num), AnswerMode.EDIT, message)
+
+
+@run_async
+def games_with_team_page(bot: Bot, chat_id: int, team_name: str, page_num: int, mode: AnswerMode,
+                        message_info: dict = None):
+    request_is_correct = True
+    games_list: List[GamePage] = get_games_with_team_page(team_name, page_num, 5)
+    custom_navigation_keyboard = []
+    if len(games_list) == 0:
+        request_is_correct = False
+    else:
+        total = games_list[0].total
+        custom_navigation_keyboard = five_buttons_pagination_menu(total, page_num, 'gmtm_pg#' + team_name, chat_id)
+    if request_is_correct:
+        custom_keyboard = [[InlineKeyboardButton(
+            text=gm.home_abbreviation + " vs " + gm.away_abbreviation + " on " + gm.game_date,
+            callback_data='gm_#' + str(gm.game_id)
+        )] for gm in games_list]
+        custom_keyboard.append(custom_navigation_keyboard)
+        custom_keyboard.append([InlineKeyboardButton(text="BACK", callback_data='b_')])
+        if mode == AnswerMode.SEND_NEW:
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   False)
+        elif mode == AnswerMode.EDIT:
+            print(message_info)
+            send_message_with_save(bot, message_info['message_id'], chat_id, invisible_character(), custom_keyboard,
+                                   True)
+    else:
+        bot.send_message(chat_id=chat_id, text="<b>There is no page with this number</b>", parse_mode='HTML')
 
 
 @run_async
@@ -370,6 +410,9 @@ def games_in_season_link(bot: Bot, update: Update):
         season_name = message_parts[0][3:-4]
         season = get_season_by_name(season_name)
         games_in_season_page(bot, chat_id, season.season_id, 1, AnswerMode.EDIT, message.__dict__)
+    if len(message_parts) >= 4 and message_parts[4] == 'Team\'s games: /gms':
+        team_name = str(message.text).split('</b>')[0][3:]
+        games_with_team_page(bot, chat_id, team_name, 1, AnswerMode.EDIT, message.__dict__)
     else:
         bot.send_message(chat_id=chat_id, text="<b>There is no games link in previous message</b>", parse_mode='HTML')
 
