@@ -458,8 +458,8 @@ def popup_statistics(bot: Bot, update: Update):
         elif message_parts[1].find('Remove team statistics') != -1:
             new_text = message_parts[0] + '---\nShow team statistics: /stat\n'
         elif message_parts[1].find('Show game statistics') != -1:
-            home_team = message_parts[0].split('\n')[0].split('</b> vs <b>')[0][3:]
-            away_team = message_parts[0].split('\n')[0].split('</b> vs <b>')[1][:-4]
+            home_team = message_parts[0].split('\n')[0].split('</b> vs <b>')[0].split('<b>')[1]
+            away_team = message_parts[0].split('\n')[0].split('</b> vs <b>')[1].split('</b>')[0]
             date = message_parts[0].split('\n')[2].split('</i>')[0].split('<i>')[1]
             season_name = message_parts[0].split('\n')[2].split('<i>')[2][:-4]
             game = get_game_by_team_names_and_season_date(home_team, away_team, date, season_name)
