@@ -25,7 +25,12 @@ class AnswerMode(Enum):
 @run_async
 def start(bot: Bot, update: Update):
     chat_id = update.message.chat.id
-    bot.send_message(chat_id=chat_id, text='Start!')
+    text = 'Welcome to the NBAtya bot, here is all his key commands:\n' \
+           '/teams -- shows list of NBA teams\n' \
+           '/games -- (TBD) shows list of NBA games on the period from 1999 to 2018 years\n' \
+           '/seasons -- shows list of seasons in NBA from 1999 to 2018 years\n' \
+           '/players -- shows list of all players in NBA from 1999 to 2018 years\n'
+    bot.send_message(chat_id=chat_id, text=text)
 
 
 @run_async

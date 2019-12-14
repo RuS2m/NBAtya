@@ -24,7 +24,7 @@ def get_seasons_page(page: int, per_page: int) -> List[SeasonPage]:
     if page != 1:
         offset = (page - 1) * per_page
     answer = []
-    total = int(int(get_seasons_num()) / per_page) + int(int(get_seasons_num()) % per_page)
+    total = int(int(get_seasons_num()) / per_page) + (1 if get_seasons_num() % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -87,7 +87,7 @@ def get_seasons_with_team_page(team_id: int, page: int, per_page: int) -> List[S
         offset = (page - 1) * per_page
     answer = []
     seasons_number_with_team = get_seasons_with_team_num(team_id)
-    total = int(int(seasons_number_with_team) / per_page) + int(int(seasons_number_with_team) % per_page)
+    total = int(int(seasons_number_with_team) / per_page) + (1 if seasons_number_with_team % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -142,7 +142,7 @@ def get_teams_page(page: int, per_page: int) -> List[TeamsPage]:
     if page != 1:
         offset = (page - 1) * per_page
     answer = []
-    total = int(int(get_teams_num()) / per_page) + int(int(get_teams_num()) % per_page)
+    total = int(int(get_teams_num()) / per_page) + (1 if get_teams_num() % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -222,7 +222,7 @@ def get_teams_in_seasons_page(season_id: int, page: int, per_page: int) -> List[
         offset = (page - 1) * per_page
     answer = []
     teams_number_in_season = get_teams_in_season_num(season_id)
-    total = int(int(teams_number_in_season) / per_page) + int(int(teams_number_in_season) % per_page)
+    total = int(int(teams_number_in_season) / per_page) + (1 if teams_number_in_season % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -259,7 +259,7 @@ def get_games_with_team_page(team_name: str, page: int, per_page: int) -> List[G
         offset = (page - 1) * per_page
     answer = []
     number_of_games = get_games_with_team_num(team_name)
-    total = int(number_of_games / per_page) + int(number_of_games % per_page)
+    total = int(number_of_games / per_page) + (1 if number_of_games % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -290,7 +290,7 @@ def get_games_with_player_page(player_id: int, page: int, per_page: int) -> List
         offset = (page - 1) * per_page
     answer = []
     number_of_games = get_games_with_player_num(player_id)
-    total = int(number_of_games / per_page) + int(number_of_games % per_page)
+    total = int(number_of_games / per_page) + (1 if number_of_games % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -323,7 +323,7 @@ def get_games_in_season_page(season_id: int, page: int, per_page: int) -> List[G
         offset = (page - 1) * per_page
     answer = []
     number_of_games = get_games_in_season_num(season_id)
-    total = int(number_of_games / per_page) + int(number_of_games % per_page)
+    total = int(number_of_games / per_page) + (1 if number_of_games % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -475,7 +475,7 @@ def get_players_in_game_page(game_id: int, page: int, per_page: int) -> List[Pla
         offset = (page - 1) * per_page
     answer = []
     number_of_players = get_players_in_game_num(game_id)
-    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    total = int(number_of_players / per_page) + (1 if number_of_players % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -496,7 +496,8 @@ def get_players_in_team_page(team_id: int, page: int, per_page: int) -> List[Pla
         offset = (page - 1) * per_page
     answer = []
     number_of_players = get_players_in_team_num(team_id)
-    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    print(number_of_players)
+    total = int(number_of_players / per_page) + (1 if number_of_players % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
@@ -517,7 +518,7 @@ def get_players_page(page: int, per_page: int) -> List[PlayerPage]:
         offset = (page - 1) * per_page
     answer = []
     number_of_players = get_players_num()
-    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    total = int(number_of_players / per_page) + (1 if number_of_players % per_page != 0 else 0)
     if page > total:
         return answer
     rs = session.execute(
