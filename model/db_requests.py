@@ -3,7 +3,7 @@ from typing import List
 from sqlalchemy.orm import Session
 
 from database_connect import engine
-from model.models import SeasonPage, Season, Message, TeamsPage, Team, Game, GamePage
+from model.models import SeasonPage, Season, Message, TeamsPage, Team, Game, GamePage, Player, PlayerPage
 
 """ * Seasons block * """
 
@@ -273,6 +273,37 @@ def get_games_with_team_page(team_name: str, page: int, per_page: int) -> List[G
     session.close()
     return answer
 
+def get_games_with_player_num(player_id: int) -> int:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT COUNT(DISTINCT(game_id)) FROM game_player WHERE player_id = :player_id",
+        {"player_id": player_id}
+    )
+    session.commit()
+    session.close()
+    return rs.first()[0]
+
+def get_games_with_player_page(player_id: int, page: int, per_page: int) -> List[GamePage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    number_of_games = get_games_with_player_num(player_id)
+    total = int(number_of_games / per_page) + int(number_of_games % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT game_id, game_date, season_id, away_team_id, home_team_id, away_abbreviation, home_abbreviation FROM games "
+        "WHERE game_id IN (SELECT game_id FROM game_player WHERE player_id = :player_id) "
+        "ORDER BY game_date "
+        "LIMIT :per_page OFFSET :offset", {"player_id": player_id, "per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(GamePage(row[0], row[1], row[2], row[3], row[4], row[5], row[6], page, total))
+    session.commit()
+    session.close()
+    return answer
+
 
 def get_games_in_season_num(season_id: int) -> int:
     session = Session(engine)
@@ -319,7 +350,7 @@ def get_game_by_id(game_id: int) -> Game:
         "games.ast_h, games.stl_h, games.blk_h, games.tov_h, games.pf_h, games.pts_h "
         "FROM games INNER JOIN seasons ON games.season_id = seasons.season_id "
         "WHERE games.game_id = :game_id ",
-    {"game_id": game_id})
+        {"game_id": game_id})
 
     for row in rs:
         print(row)
@@ -358,17 +389,146 @@ def get_game_by_team_names_and_season_date(home_team: str, away_team: str, date,
                     row[33], row[34], row[35], row[36], row[37], row[38], row[39], row[40], row[41], row[42], row[43],
                     row[43], row[44], row[45], row[46], row[37])
 
+
 """ * Players block * """
 
 
 def get_players_num():
     session = Session(engine)
     rs = session.execute(
-        "SELECT COUNT(*) FROM players"
+        "SELECT COUNT(player_id) FROM players"
     )
     session.commit()
     session.close()
     return rs.first()[0]
+
+def get_players_in_game_num(game_id: int):
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT COUNT(DISTINCT(player_id)) FROM game_player WHERE game_id = :game_id",
+        {"game_id": game_id}
+    )
+    session.commit()
+    session.close()
+    return rs.first()[0]
+
+def get_players_in_team_num(team_id: int):
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT COUNT(DISTINCT(player_id)) FROM players WHERE team_id = :team_id",
+        {"team_id": team_id}
+    )
+    session.commit()
+    session.close()
+    return rs.first()[0]
+
+def get_player_by_name_and_team_id(secondname_name: str, team_id: int) -> Player:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT players.player_id, players.secondname_name, players.playercode, players.team_id, teams.team_name, teams.abbreviation, "
+        "players.rosterstatus, players.position, players.jersey, players.season_exp, "
+        "players.from_year, players.to_year, players.draft_year, players.draft_round, players.height, players.weight, players.min, "
+        "players.fgm, players.fga, players.fg_pct, players.fg3m, players.fg3a,"
+        "players.fg3_pct, players.ftm, players.fta, players.ft_pct, players.oreb, players.dreb, players.reb, players.ast, players.stl, "
+        "players.blk, players.tov, players.pf, players.pts, players.plus_minus "
+        "FROM players INNER JOIN teams ON players.team_id = teams.team_id "
+        "WHERE players.secondname_name = :secondname_name AND players.team_id = :team_id "
+        "LIMIT 1",
+        {"secondname_name": secondname_name, "team_id": team_id}
+    )
+    for row in rs:
+        session.commit()
+        session.close()
+        return Player(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11],
+                      row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22],
+                      row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[31], row[32], row[33],
+                      row[34], row[35])
+
+
+def get_player_by_id(player_id: int) -> Player:
+    session = Session(engine)
+    rs = session.execute(
+        "SELECT players.player_id, players.secondname_name, players.playercode, players.team_id, teams.team_name, teams.abbreviation, "
+        "players.rosterstatus, players.position, players.jersey, players.season_exp, "
+        "players.from_year, players.to_year, players.draft_year, players.draft_round, players.height, players.weight, players.min, "
+        "players.fgm, players.fga, players.fg_pct, players.fg3m, players.fg3a,"
+        "players.fg3_pct, players.ftm, players.fta, players.ft_pct, players.oreb, players.dreb, players.reb, players.ast, players.stl, "
+        "players.blk, players.tov, players.pf, players.pts, players.plus_minus "
+        "FROM players INNER JOIN teams ON players.team_id = teams.team_id "
+        "WHERE players.player_id = :player_id "
+        "LIMIT 1",
+        {"player_id": player_id}
+    )
+    for row in rs:
+        session.commit()
+        session.close()
+        return Player(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8], row[9], row[10], row[11],
+                      row[12], row[13], row[14], row[15], row[16], row[17], row[18], row[19], row[20], row[21], row[22],
+                      row[23], row[24], row[25], row[26], row[27], row[28], row[29], row[30], row[31], row[32], row[33],
+                      row[34], row[35])
+
+
+def get_players_in_game_page(game_id: int, page: int, per_page: int) -> List[PlayerPage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    number_of_players = get_players_in_game_num(game_id)
+    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT player_id, secondname_name, rosterstatus, team_id FROM players "
+        "WHERE player_id IN (SELECT player_id FROM game_player WHERE game_id = :game_id)"
+        "ORDER BY secondname_name "
+        "LIMIT :per_page OFFSET :offset", {"game_id": game_id, "per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(PlayerPage(row[0], row[1], row[2], row[3], page, total))
+    session.commit()
+    session.close()
+    return answer
+
+def get_players_in_team_page(team_id: int, page: int, per_page: int) -> List[PlayerPage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    number_of_players = get_players_in_team_num(team_id)
+    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT player_id, secondname_name, rosterstatus, team_id FROM players "
+        "WHERE team_id = :team_id "
+        "ORDER BY secondname_name "
+        "LIMIT :per_page OFFSET :offset", {"team_id": team_id, "per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(PlayerPage(row[0], row[1], row[2], row[3], page, total))
+    session.commit()
+    session.close()
+    return answer
+
+def get_players_page(page: int, per_page: int) -> List[PlayerPage]:
+    session = Session(engine)
+    offset = 0
+    if page != 1:
+        offset = (page - 1) * per_page
+    answer = []
+    number_of_players = get_players_num()
+    total = int(number_of_players / per_page) + int(number_of_players % per_page)
+    if page > total:
+        return answer
+    rs = session.execute(
+        "SELECT player_id, secondname_name, rosterstatus, team_id FROM players "
+        "ORDER BY secondname_name "
+        "LIMIT :per_page OFFSET :offset", {"per_page": per_page, "offset": offset})
+    for row in rs:
+        answer.append(PlayerPage(row[0], row[1], row[2], row[3], page, total))
+    session.commit()
+    session.close()
+    return answer
 
 
 """ * Messages block * """

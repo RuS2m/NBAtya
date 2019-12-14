@@ -8,6 +8,8 @@ db:
 	@echo raising up docker with database
 	docker-compose up -d
 	sleep 5
+	@echo adding procedures
+	psql -h localhost -d db -U jordan -q < resources/also.sql
 	@echo applying data from dump
 	psql -h localhost -d db -U jordan -q < resources/dump.sql
 

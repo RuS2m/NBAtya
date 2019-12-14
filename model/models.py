@@ -90,7 +90,7 @@ class SeasonPage:
         return '<b>{}</b>\n' \
                '<i>type</i>: {}\n' \
                '<i>year</i>: {}' \
-               ''.format(self.season_name, self.season_type, self.season_year)
+               ''.format(self.season_name, self.season_type, int(self.season_year))
 
 
 class Team:
@@ -108,9 +108,10 @@ class Team:
                '<i>Foundation year</i>: {}\n' \
                'Seasons, where team was participating: /sns\n' \
                'Team\'s games: /gms\n' \
+               'Team\'s players: /plrs\n' \
                '---\n' \
                'Show team statistics: /stat\n' \
-               ''.format(self.team_name, self.abbreviation, self.foundation_year)
+               ''.format(self.team_name, self.abbreviation, int(self.foundation_year))
 
     def fake_str(self):
         return '<b>{}</b> <b>({})</b>\n\n' \
@@ -245,11 +246,62 @@ class Game:
         away_emodji = '🦀' if self.is_home_win else '🏆'
         return '{} <b>{}</b> vs <b>{}</b> {} ({}:{})\n\n' \
                'Match on <i>{}</i> during <i>{}</i>\n' \
+               'Players in game: /plrs\n\n' \
                '---\n' \
                'Show game statistics: /stat\n' \
                "".format(home_emodji, self.home_abbreviation, self.away_abbreviation, away_emodji,
                          int(self.statistics.pts_h), int(self.statistics.pts_a), self.game_date,
                          self.seasom_name)
+
+
+class Player:
+    def __init__(self, player_id, secondname_name, playercode, team_id, team_name, team_abbreviation, rosterstatus, position,
+                 jersey, season_exp,
+                 from_year, to_year, draft_year, draft_round, height, weight, min, fgm, fga, fg_pct, fg3m, fg3a,
+                 fg3_pct, ftm, fta, ft_pct, oreb, dreb, reb, ast, stl, blk, tov, pf, pts, plus_minus):
+        self.player_id = player_id
+        self.secondname_name = secondname_name
+        self.playercode = playercode
+        self.team_id = team_id
+        self.team_name = team_name
+        self.team_abbreviation = team_abbreviation
+        self.rosterstatus = rosterstatus
+        self.position = position
+        self.jersey = jersey
+        self.season_exp = season_exp
+        self.from_year = from_year
+        self.to_year = to_year
+        self.draft_year = draft_year
+        self.draft_round = draft_round
+        self.height = height
+        self.weight = weight
+        self.statistics = Statistics(min, fgm, fga, fg_pct, fg3m, fg3a, fg3_pct, ftm, fta, ft_pct, oreb, dreb, reb, ast,
+                                     stl, blk, tov, pf, pts)
+
+    def __str__(self):
+        return '' \
+               '<b>{}</b>\n\n' \
+               '{} at <b>{} ({})</b> <i>from {} to {}</i>\n' \
+               'Player\'s games: /gms\n' \
+               'Player\'s team: /tm\n\n' \
+               '---\n' \
+               'Show player\'s statistics: /stat' \
+               ''.format(self.secondname_name, self.position, self.team_name, self.team_abbreviation, int(self.from_year),
+                         int(self.to_year))
+
+
+class PlayerPage:
+    def __init__(self, player_id, secondname_name, rosterstatus, team_id, page, total):
+        self.player_id = player_id
+        self.secondname_name = secondname_name
+        self.rosterstatus = rosterstatus
+        self.team_id = team_id
+        self.page = page
+        self.total = total
+
+    def __str__(self):
+        return '{}, {}, {}, {}\npage {} from {}'.format(self.player_id, self.secondname_name, self.rosterstatus,
+                                                        self.team_id, self.page, self.total)
 
 
 class Message:
