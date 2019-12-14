@@ -1,25 +1,25 @@
 class Statistics:
     def __init__(self, min, fgm, fga, fg_pct, fg3m, fg3a, fg3_pct, ftm, fta, ft_pct, oreb, dreb, reb, ast, stl, blk,
                  tov, pf, pts):
-        self.min = min
-        self.fgm = fgm
-        self.fga = fga
-        self.fg_pct = fg_pct
-        self.fg3m = fg3m
-        self.fg3a = fg3a
-        self.fg3_pct = fg3_pct
-        self.ftm = ftm
-        self.fta = fta
-        self.ft_pct = ft_pct
-        self.oreb = oreb
-        self.dreb = dreb
-        self.reb = reb
-        self.ast = ast
-        self.stl = stl
-        self.blk = blk
-        self.tov = tov
-        self.pf = pf
-        self.pts = pts
+        self.min = round(min, 3)
+        self.fgm = round(fgm, 3)
+        self.fga = round(fga, 3)
+        self.fg_pct = round(fg_pct, 3)
+        self.fg3m = round(fg3m, 3)
+        self.fg3a = round(fg3a, 3)
+        self.fg3_pct = round(fg3_pct, 3)
+        self.ftm = round(ftm, 3)
+        self.fta = round(fta, 3)
+        self.ft_pct = round(ft_pct, 3)
+        self.oreb = round(oreb, 3)
+        self.dreb = round(dreb, 3)
+        self.reb = round(reb, 3)
+        self.ast = round(ast, 3)
+        self.stl = round(stl, 3)
+        self.blk = round(blk, 3)
+        self.tov = round(tov, 3)
+        self.pf = round(pf, 3)
+        self.pts = round(pts, 3)
 
     def __str__(self):
         return '\n<i>🏀🏀-Point shots</i>\n' \
@@ -148,44 +148,44 @@ class GameStatistics:
     def __init__(self, min_a, fgm_a, fga_a, fg_pct_a, fg3m_a, fg3a_a, fg3_pct_a, ftm_a, fta_a, ft_pct_a, oreb_a, dreb_a,
                  reb_a, ast_a, stl_a, blk_a, tov_a, pf_a, pts_a, min_h, fgm_h, fga_h, fg_pct_h, fg3m_h, fg3a_h,
                  fg3_pct_h, ftm_h, fta_h, ft_pct_h, oreb_h, dreb_h, reb_h, ast_h, stl_h, blk_h, tov_h, pf_h, pts_h):
-        self.min_a = min_a
-        self.fgm_a = fgm_a
-        self.fga_a = fga_a
-        self.fg_pct_a = fg_pct_a
-        self.fg3m_a = fg3m_a
-        self.fg3a_a = fg3a_a
-        self.fg3_pct_a = fg3_pct_a
-        self.ftm_a = ftm_a
-        self.fta_a = fta_a
-        self.ft_pct_a = ft_pct_a
-        self.oreb_a = oreb_a
-        self.dreb_a = dreb_a
-        self.reb_a = reb_a
-        self.ast_a = ast_a
-        self.stl_a = stl_a
-        self.blk_a = blk_a
-        self.tov_a = tov_a
-        self.pf_a = pf_a
-        self.pts_a = pts_a
-        self.min_h = min_h
-        self.fgm_h = fgm_h
-        self.fga_h = fga_h
-        self.fg_pct_h = fg_pct_h
-        self.fg3m_h = fg3m_h
-        self.fg3a_h = fg3a_h
-        self.fg3_pct_h = fg3_pct_h
-        self.ftm_h = ftm_h
-        self.fta_h = fta_h
-        self.ft_pct_h = ft_pct_h
-        self.oreb_h = oreb_h
-        self.dreb_h = dreb_h
-        self.reb_h = reb_h
-        self.ast_h = ast_h
-        self.stl_h = stl_h
-        self.blk_h = blk_h
-        self.tov_h = tov_h
-        self.pf_h = pf_h
-        self.pts_h = pts_h
+        self.min_a = round(min_a, 3)
+        self.fgm_a = round(fgm_a, 3)
+        self.fga_a = round(fga_a, 3)
+        self.fg_pct_a = round(fg_pct_a, 3)
+        self.fg3m_a = round(fg3m_a, 3)
+        self.fg3a_a = round(fg3a_a, 3)
+        self.fg3_pct_a = round(fg3_pct_a, 3)
+        self.ftm_a = round(ftm_a, 3)
+        self.fta_a = round(fta_a, 3)
+        self.ft_pct_a = round(ft_pct_a, 3)
+        self.oreb_a = round(oreb_a, 3)
+        self.dreb_a = round(dreb_a, 3)
+        self.reb_a = round(reb_a, 3)
+        self.ast_a = round(ast_a, 3)
+        self.stl_a = round(stl_a, 3)
+        self.blk_a = round(blk_a, 3)
+        self.tov_a = round(tov_a, 3)
+        self.pf_a = round(pf_a, 3)
+        self.pts_a = round(pts_a, 3)
+        self.min_h = round(min_h, 3)
+        self.fgm_h = round(fgm_h, 3)
+        self.fga_h = round(fga_h, 3)
+        self.fg_pct_h = round(fg_pct_h, 3)
+        self.fg3m_h = round(fg3m_h, 3)
+        self.fg3a_h = round(fg3a_h, 3)
+        self.fg3_pct_h = round(fg3_pct_h, 3)
+        self.ftm_h = round(ftm_h, 3)
+        self.fta_h = round(fta_h, 3)
+        self.ft_pct_h = round(ft_pct_h, 3)
+        self.oreb_h = round(oreb_h, 3)
+        self.dreb_h = round(dreb_h, 3)
+        self.reb_h = round(reb_h, 3)
+        self.ast_h = round(ast_h, 3)
+        self.stl_h = round(stl_h, 3)
+        self.blk_h = round(blk_h, 3)
+        self.tov_h = round(tov_h, 3)
+        self.pf_h = round(pf_h, 3)
+        self.pts_h = round(pts_h, 3)
 
     def __str__(self):
         return '\n<i>🏀🏀-Point shots</i>\n' \
