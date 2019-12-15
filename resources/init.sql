@@ -1,10 +1,10 @@
 CREATE TABLE games (
 	game_id BIGINT PRIMARY KEY,
 	game_date TEXT,
-	season_id BIGINT,
+	season_id BIGINT REFERENCES seasons(season_id),
 	is_home_win BOOLEAN,
-	away_team_id BIGINT,
-	home_team_id BIGINT,
+	away_team_id BIGINT REFERENCES teams(team_id),
+	home_team_id BIGINT REFERENCES teams(team_id),
 	away_team_name TEXT,
 	home_team_name TEXT,
 	away_abbreviation TEXT,
@@ -74,8 +74,8 @@ CREATE TABLE seasons (
 	pts DOUBLE PRECISION
 );
 CREATE TABLE season_team (
-	team_id BIGINT,
-	season_id BIGINT,
+	team_id BIGINT REFERENCES teams(team_id),
+	season_id BIGINT REFERENCES seasons(season_id),
 	min DOUBLE PRECISION,
 	fgm DOUBLE PRECISION,
 	fga DOUBLE PRECISION,
@@ -123,10 +123,10 @@ CREATE TABLE teams (
 	pts DOUBLE PRECISION
 );
 CREATE TABLE game_player (
-	player_id BIGINT,
-	team_id BIGINT,
-	game_id BIGINT,
-	season_id BIGINT,
+	player_id BIGINT REFERENCES players(player_id),
+	team_id BIGINT REFERENCES teams(team_id),
+	game_id BIGINT REFERENCES games(game_id),
+	season_id BIGINT REFERENCES seasons(season_id),
 	is_win BOOLEAN,
 	min BIGINT,
 	fgm BIGINT,
@@ -154,7 +154,7 @@ CREATE TABLE players (
 	player_id BIGINT PRIMARY KEY,
 	secondname_name TEXT,
 	playercode TEXT,
-	team_id BIGINT,
+	team_id BIGINT REFERENCES teams(team_id),
 	rosterstatus TEXT,
 	position TEXT,
 	jersey DOUBLE PRECISION,
@@ -187,12 +187,12 @@ CREATE TABLE players (
 	plus_minus DOUBLE PRECISION
 );
 CREATE TABLE bets (
-	game_id BIGINT,
+	game_id BIGINT REFERENCES games(game_id),
 	bets_type TEXT,
 	book_name TEXT,
 	book_id BIGINT,
-	away_team_id BIGINT,
-	home_team_id BIGINT,
+	away_team_id BIGINT REFERENCES teams(team_id),
+	home_team_id BIGINT REFERENCES teams(team_id),
 	points_1 DOUBLE PRECISION,
 	points_2 DOUBLE PRECISION,
 	price_1 DOUBLE PRECISION,
